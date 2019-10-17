@@ -48,7 +48,7 @@ def plugin_main(args, **kwargs):
 
     # do not re-run if we already ran, and input files are deleted.
     if os.path.exists(fileid) and not os.path.exists(map_in[0].file):
-        print 'PipelineStep_selectDistFreqs: Not re-running because output file exists, but input files don\'t!'
+        print('PipelineStep_selectDistFreqs: Not re-running because output file exists, but input files don\'t!')
         return  {'mapfile': fileid}
 
     #sort into frequency groups
@@ -70,7 +70,7 @@ def plugin_main(args, **kwargs):
             freq_groups[freq].append(item.file)
         else:
             freq_groups[freq] = [item.file]
-        if not item.host in hosts:
+        if item.host not in hosts:
             hosts.append(item.host)
 
     # find maximum number of files per frequency-group
