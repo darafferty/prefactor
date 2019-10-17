@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 """
 Script to make a clean mask
 """
@@ -790,4 +790,3 @@ if __name__ == '__main__':
                vertices_file=args.vertices_file, atrous_jmax=args.atrous_jmax,
                pad_to_size=args.pad_to_size, skip_source_detection=args.skip_source_detection,
                region_file=args.region_file)
-    print erg

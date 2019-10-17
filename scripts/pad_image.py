@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 """
 Script to pad a FITS image
 """
@@ -6,8 +6,6 @@ import argparse
 from argparse import RawTextHelpFormatter
 from astropy.io import fits as pyfits
 import numpy as np
-import sys
-import os
 
 
 def main(infile, xypadsize):

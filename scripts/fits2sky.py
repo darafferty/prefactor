@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 """
 Script to make a sky model from fits model images
 """
@@ -9,9 +9,6 @@ from astropy import wcs
 import numpy as np
 import scipy.interpolate
 import casacore.tables as pt
-import sys
-import os
-import glob
 
 
 def ra2hhmmss(deg):
