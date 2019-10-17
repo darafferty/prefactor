@@ -127,7 +127,7 @@ class Band(object):
                 while (numpy.max(prime_factors(val)) > 7):
                     val +=1
                 fac[k]=val
-        newlarge=numpy.product(fac)
+        newlarge = int(numpy.product(fac))
         for k in range(n, newlarge, 2):
             if ((numpy.max(prime_factors(k)) < 8)):
                 return k
