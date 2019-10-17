@@ -77,7 +77,7 @@ def plugin_main(args, **kwargs):
     maxfiles = max([len(group) for group in freq_groups.values()])
 
     # select frequencies
-    freqs =  freq_groups.keys()
+    freqs = list(freq_groups.keys())
     freqs.sort()
     num_freqs = len(freqs)
     if num > num_freqs:
