@@ -38,8 +38,8 @@ def plugin_main(args, **kwargs):
 
     map_out = DataMap([])
     inindex = 0
-    for groupID in xrange(len(groupmap)):
-        for fileID in xrange(len(groupmap[groupID].file)):
+    for groupID in range(len(groupmap)):
+        for fileID in range(len(groupmap[groupID].file)):
             map_out.data.append(DataProduct(inmap[groupID].host, inmap[groupID].file, (inmap[groupID].skip or groupmap[groupID].skip) ))
 
     fileid = os.path.join(mapfile_dir, filename)
@@ -81,16 +81,16 @@ class MultiDataProduct(DataProduct):
                 self._from_datamap(data)
 
         except TypeError:
-            raise DataProduct("No known method to set a filelist from %s" % str(file))
+            raise DataProduct("No known method to set a filelist from %s" % str(data))
 
     def _from_dataproduct(self, prod):
-        print 'setting filelist from DataProduct'
+        print('setting filelist from DataProduct')
         self.host = prod.host
         self.file = prod.file
         self.skip = prod.skip
 
     def _from_datamap(self, inmap):
-        print 'setting filelist from DataMap'
+        print('setting filelist from DataMap')
         filelist = {}
         for item in inmap:
             if not item.host in filelist:
@@ -145,8 +145,7 @@ class MultiDataMap(DataMap):
     def split_list(self, number):
         mdplist = []
         for item in self.data:
-            for i in xrange(0, len(item.file), number):
+            for i in range(0, len(item.file), number):
                 chunk = item.file[i:i+number]
                 mdplist.append(MultiDataProduct(item.host, chunk, item.skip))
         self._set_data(mdplist)
-
