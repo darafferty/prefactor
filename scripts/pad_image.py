@@ -20,8 +20,8 @@ def main(infile, xypadsize):
     if xsize == pad_xsize and ysize == pad_ysize:
         return
 
-    xoffset = (pad_xsize - xsize) / 2
-    yoffset = (pad_ysize - ysize) / 2
+    xoffset = int((pad_xsize - xsize) / 2)
+    yoffset = int((pad_ysize - ysize) / 2)
     newdata=np.zeros((1, 1, pad_ysize, pad_xsize))
 
     newdata[0, 0, yoffset:yoffset+ysize, xoffset:xoffset+xsize] = imdata
