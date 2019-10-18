@@ -74,13 +74,13 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
     s_outlier = s.copy()
     s_field = s.copy()
     x, y, refRA, refDec = s._getXY()
-    pointing_x, pointing_y = lsmtool.operations_lib.radec2xy(pointing_ra, pointing_dec,
+    pointing_x, pointing_y = lsmtool.operations_lib.radec2xy([pointing_ra], [pointing_dec],
                                                              refRA=refRA, refDec=refDec)
     crdelt = 0.066667  # deg/pix used by lsmtool.operations_lib.radec2xy()
-    min_x = pointing_x - fwhm_deg_ra / crdelt * scale_factor
-    max_x = pointing_x + fwhm_deg_ra / crdelt * scale_factor
-    min_y = pointing_y - fwhm_deg_dec / crdelt * scale_factor
-    max_y = pointing_y + fwhm_deg_dec / crdelt * scale_factor
+    min_x = pointing_x[0] - fwhm_deg_ra / crdelt * scale_factor
+    max_x = pointing_x[0] + fwhm_deg_ra / crdelt * scale_factor
+    min_y = pointing_y[0] - fwhm_deg_dec / crdelt * scale_factor
+    max_y = pointing_y[0] + fwhm_deg_dec / crdelt * scale_factor
     field_ind = (x > min_x) & (y > min_y) & (x < max_x) and (y < max_y)
 
     s_outlier.remove(field_ind)
