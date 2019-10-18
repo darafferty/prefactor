@@ -86,9 +86,9 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
     field_ind = (x > min_x) & (y > min_y) & (x < max_x) & (y < max_y)
 
     s_outlier.remove(field_ind)
-    s_outlier.write(outroot+'.outlier')
+    s_outlier.write(outroot+'.outlier', clobber=True)
     s_field.select(field_ind)
-    s_field.write(outroot+'.field')
+    s_field.write(outroot+'.field', clobber=True)
 
 
 if __name__ == '__main__':
