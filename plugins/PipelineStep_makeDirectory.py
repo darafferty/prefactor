@@ -1,7 +1,5 @@
 import os
-#from lofarpipe.support.data_map import DataMap
-#from lofarpipe.support.data_map import DataProduct
-
+import sys
 
 def plugin_main(args, **kwargs):
     """
@@ -22,10 +20,10 @@ def plugin_main(args, **kwargs):
 
     if os.path.exists(dir_to_create):
         if not os.path.isdir(dir_to_create):
-            print "Plugin makeDirectory: Path {} exists, but is no directory!".format(dir_to_create)
-            raise ValueError, "Path {} exists, but is no directory!".format(dir_to_create)
+            print("Plugin makeDirectory: Path {} exists, but is no directory!".format(dir_to_create))
+            sys.exit(1)
     else:
-        os.makedirs(dir_to_create,mode=0755)
+        os.makedirs(dir_to_create)
 
     result = {}
     return result
