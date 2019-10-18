@@ -7,7 +7,6 @@ from argparse import RawTextHelpFormatter
 import numpy as np
 import casacore.tables as pt
 import lsmtool
-from lofarpipe.support.data_map import DataMap
 
 
 def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
@@ -33,7 +32,7 @@ def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
     scale_factor = float(scale_factor)
 
     # Get pointing info
-    obs = pt.table(ms_list[0]+'::FIELD', ack=False)
+    obs = pt.table(ms_in+'::FIELD', ack=False)
     pointing_ra = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][0]))
     if pointing_ra < 0.:
         pointing_ra = 360.0 + (pointing_ra)

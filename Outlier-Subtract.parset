@@ -79,7 +79,7 @@ pipeline.pluginpath        =  {{ prefactor_directory }}/plugins
 ########################################################
 
 # which steps to run
-pipeline.steps = [create_ms_map, combine_mapfile, do_magic, select_imaging_bands, select_high_size, select_high_nwavelengths, wsclean_high, mask_high, mk_inspect_dir, copy_mask, move_high, create_maxsize_high_map, pad_model_high, pad_mask_high, combine_model_high_mapfile, expand_model_high, combine_mask_high_mapfile, expand_mask_high, fits_to_bbs_high, separate_models_high, make_sourcedb_high_out, make_sourcedb_high, expand_sourcedb_high_out, expand_sourcedb_high, subtract_high_out, subtract_high, select_low_size, select_low_nwavelengths, wsclean_low, mask_low, move_low, create_maxsize_low_map, pad_model_low, pad_mask_low, combine_model_low_mapfile, expand_model_low, combine_mask_low_mapfile, expand_mask_low, fits_to_bbs_low, make_sourcedb_low, expand_sourcedb_low, subtract_low, merge, copy_skymodels]
+pipeline.steps = [create_ms_map, combine_mapfile, do_magic, select_imaging_bands, select_high_size, select_high_nwavelengths, wsclean_high, mask_high, mk_inspect_dir, copy_mask, move_high, create_maxsize_high_map, pad_model_high, pad_mask_high, combine_model_high_mapfile, expand_model_high, combine_mask_high_mapfile, expand_mask_high, fits_to_bbs_high, separate_models_high, make_sourcedb_high_out, make_sourcedb_high, expand_sourcedb_high_out, expand_sourcedb_high, subtract_high_out, subtract_high, select_low_size, select_low_nwavelengths, wsclean_low, mask_low, move_low, create_maxsize_low_map, pad_model_low, pad_mask_low, combine_model_low_mapfile, expand_model_low, combine_mask_low_mapfile, expand_mask_low, fits_to_bbs_low, separate_models_low, make_sourcedb_low, expand_sourcedb_low, subtract_low, merge, copy_skymodels]
 
 # create a mapfile with all MSs, length = nfiles
 create_ms_map.control.kind                      =   plugin
@@ -526,11 +526,11 @@ fits_to_bbs_low.argument.min_flux_jy     =   0.0    # keep all clean components,
 separate_models_low.control.type             =   pythonplugin
 separate_models_low.control.executable       =   {{ scripts }}/separate_skymodel.py
 separate_models_low.control.error_tolerance  =   {{ error_tolerance }}
-separate_models_low.control.mapfiles_in      =   [fits_to_bbs_low.output.mapfile]
-separate_models_low.control.inputkeys        =   [skymodel]
+separate_models_low.control.mapfiles_in      =   [fits_to_bbs_low.output.mapfile,input.output.mapfile_dir/do_magic.datamap,input.output.mapfile_dir/do_magic.datamap_mean_fwhm]
+separate_models_low.control.inputkeys        =   [skymodel,msfile,fwhm]
 separate_models_low.control.outputkey        =   outroot
 separate_models_low.control.outputsuffixes   =   [.outlier, .field]
-separate_models_low.argument.flags           =   [skymodel,outroot]
+separate_models_low.argument.flags           =   [skymodel,msfile,fwhm,outroot]
 
 # make sourcedbs from the low-res outlier sky models, length = nbands
 # outtype = blob for the same reasons as for sourcedb_high
