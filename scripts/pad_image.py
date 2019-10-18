@@ -28,7 +28,7 @@ def main(infile, xypadsize):
     hdu[0].data = newdata
     hdu[0].header['CRPIX1'] += xoffset
     hdu[0].header['CRPIX2'] += yoffset
-    hdu.writeto(infile, clobber=True)
+    hdu.writeto(infile, overwrite=True)
 
 
 if __name__ == '__main__':
