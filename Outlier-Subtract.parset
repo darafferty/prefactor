@@ -286,11 +286,11 @@ fits_to_bbs_high.argument.min_flux_jy     =   {{ min_flux_jy }}
 separate_models_high.control.type             =   pythonplugin
 separate_models_high.control.executable       =   {{ scripts }}/separate_skymodel.py
 separate_models_high.control.error_tolerance  =   {{ error_tolerance }}
-separate_models_high.control.mapfiles_in      =   [fits_to_bbs_high.output.mapfile,input.output.mapfile_dir/do_magic.datamap]
-separate_models_high.control.inputkeys        =   [skymodel,msfile]
+separate_models_high.control.mapfiles_in      =   [fits_to_bbs_high.output.mapfile,input.output.mapfile_dir/do_magic.datamap,input.output.mapfile_dir/do_magic.datamap_mean_fwhm]
+separate_models_high.control.inputkeys        =   [skymodel,msfile,fwhm]
 separate_models_high.control.outputkey        =   outroot
 separate_models_high.control.outputsuffixes   =   [.outlier,.field]
-separate_models_high.argument.flags           =   [skymodel,msfile,outroot]
+separate_models_high.argument.flags           =   [skymodel,msfile,fwhm,outroot]
 
 # make sourcedbs from the high-res sky models, length = nbands
 # can use outtype=blob because we'll use NDPPP

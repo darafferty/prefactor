@@ -284,6 +284,7 @@ def main(ms_input, outmapname=None, mapfile_dir=None, cellsize_highres_deg=0.002
     high_paddedsize_map = DataMap([])
     low_paddedsize_map = DataMap([])
     numfiles = 0
+    fwhm_list = []
     for i, band in enumerate(bands):
         print("InitSubtract_sort_and_compute.py: Working on Band:",band.name)
         group_map.append(MultiDataProduct('localhost', band.files, False))
@@ -292,6 +293,7 @@ def main(ms_input, outmapname=None, mapfile_dir=None, cellsize_highres_deg=0.002
             file_single_map.append(DataProduct('localhost', filename, False))
         (imsize_high_res, imsize_low_res) = band.get_image_sizes(cellsize_highres_deg, cellsize_lowres_deg,
                                                                  fieldsize_highres, fieldsize_lowres)
+        fwhm_list.append(band.fwhm_deg)
 
         # Calculate y_axis_stretch if desired
         if calc_y_axis_stretch:
@@ -327,6 +329,13 @@ def main(ms_input, outmapname=None, mapfile_dir=None, cellsize_highres_deg=0.002
         imsize_low_pad = band.get_optimum_size(int(imsize_low_res*image_padding))
         imsize_low_pad_stretch = band.get_optimum_size(int(imsize_low_res*image_padding*y_axis_stretch_lowres))
         low_paddedsize_map.append(DataProduct('localhost', str(imsize_low_pad)+" "+str(imsize_low_pad_stretch), False))
+
+    # Find mean FOV
+    mean_fwhm_deg = np.mean(fwhm_list)
+    sec_el = 1.0 / np.sin(bands[0].mean_el_rad)
+    fwhm_deg_map = DataMap([])
+    for band in bands:
+         fwhm_deg_map.append(DataProduct('localhost', str(mean_fwhm_deg/sec_el)+" "+str(mean_fwhm_deg), False))
 
     print("InitSubtract_sort_and_compute.py: Computing averaging steps.")
     (freqstep, timestep) = bands[0].get_averaging_steps()
@@ -366,12 +375,14 @@ def main(ms_input, outmapname=None, mapfile_dir=None, cellsize_highres_deg=0.002
     nwavelengths_high_map.save(nwavelengths_high_name)
     nwavelengths_low_name = os.path.join(mapfile_dir, outmapname+'_nwavelengths_low')
     nwavelengths_low_map.save(nwavelengths_low_name)
+    fwhm_deg_name = os.path.join(mapfile_dir, outmapname+'_mean_fwhm')
+    fwhm_deg_map.save(fwhm_deg_name)
 
     result = {'groupmap': groupmapname, 'single_mapfile' : file_single_mapname,
               'high_size_mapfile' : high_sizename, 'low_size_mapfile' : low_sizename,
               'high_padsize_mapfile' : high_padsize_name, 'low_padsize_mapfile' : low_padsize_name,
               'freqstep' : freqstepname, 'timestep' : timestepname, 'nwavelengths_high_mapfile': nwavelengths_high_name,
-              'nwavelengths_low_mapfile': nwavelengths_low_name}
+              'nwavelengths_low_mapfile': nwavelengths_low_name, 'mean_fwhm_mapfile': fwhm_deg_name}
     return result
 
 

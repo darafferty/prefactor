@@ -10,7 +10,7 @@ import lsmtool
 from lofarpipe.support.data_map import DataMap
 
 
-def main(skymodel, ms_input, outroot, scale_factor=1.25):
+def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
     """
     Separate a makesourcedb sky model into outlier and field parts
 
@@ -18,50 +18,19 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
     ----------
     skymodel : str
         Filename of the input makesourcedb sky model
-    ms_input : lsit
-        List of MS files
+    ms_in : str
+        Filename of the input MS file
+    fwhm_deg : str
+        Size of FWHM of primary beam in degrees as "FWHM_RA FWHM_Dec"
     outroot : str
         Root for output sky models: outroot.outlier and outroot.field)
     scale_factor : float
         Scaling to use to determine field region: FWHM * scale_factor
     """
-    if type(ms_input) is str:
-        if ms_input.startswith('[') and ms_input.endswith(']'):
-            ms_list = [f.strip(' \'\"') for f in ms_input.strip('[]').split(',')]
-        else:
-            map_in = DataMap.load(ms_input)
-            map_in.iterator = DataMap.SkipIterator
-            ms_list = []
-            for fname in map_in:
-                if fname.startswith('[') and fname.endswith(']'):
-                    for f in fname.strip('[]').split(','):
-                        ms_list.append(f.strip(' \'\"'))
-                else:
-                    ms_list.append(fname.strip(' \'\"'))
-    elif type(ms_input) is list:
-        ms_list = [str(f).strip(' \'\"') for f in ms_input]
-    else:
-        raise TypeError('separate_skymodel: type of "ms_input" unknown!')
-    scale_factor = int(scale_factor)
-
-    # Find size of primary beam at central frequency
-    msfreqs = []
-    for ms in ms_list:
-        # group all MSs by frequency
-        sw = pt.table(ms+'::SPECTRAL_WINDOW', ack=False)
-        msfreqs.append(int(sw.col('REF_FREQUENCY')[0]))
-    mid_freq = np.mean(msfreqs)
-    ant = pt.table(ms_list[0]+'::ANTENNA', ack=False)
-    diam = float(ant.col('DISH_DIAMETER')[0])
-    ant.close()
-    el_values = pt.taql("SELECT mscal.azel1()[1] AS el from "
-                        + ms_list[0] + " limit ::10000").getcol("el")
-    mean_el_rad = np.mean(el_values)
-    sec_el = 1.0 / np.sin(mean_el_rad)
-    fwhm_deg = 1.1 * ((3.0e8 / mid_freq) / diam) * 180. / np.pi * sec_el
-    fwhm_ra_deg = fwhm_deg / sec_el
-    fwhm_dec_deg = fwhm_deg
+    fwhm_ra_deg = float(fwhm_deg.split(" ")[0])
+    fwhm_dec_deg = float(fwhm_deg.split(" ")[1])
     print('Using width in RA of {0} deg and in Dec of {1} deg'.format(fwhm_ra_deg*2.0, fwhm_dec_deg*2.0))
+    scale_factor = float(scale_factor)
 
     # Get pointing info
     obs = pt.table(ms_list[0]+'::FIELD', ack=False)
