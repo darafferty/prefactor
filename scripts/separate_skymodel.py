@@ -26,6 +26,7 @@ def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
     scale_factor : float
         Scaling to use to determine field region: FWHM * scale_factor
     """
+    ms_in = ms_in.strip('[]')
     fwhm_ra_deg = float(fwhm_deg.split(" ")[0])
     fwhm_dec_deg = float(fwhm_deg.split(" ")[1])
     print('Using width in RA of {0} deg and in Dec of {1} deg'.format(fwhm_ra_deg*2.0, fwhm_dec_deg*2.0))
