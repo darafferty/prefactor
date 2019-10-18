@@ -5,9 +5,9 @@ Script to separate a sky model into outlier and field parts
 import argparse
 from argparse import RawTextHelpFormatter
 import numpy as np
+import casacore.tables as pt
 import lsmtool
-import sys
-import os
+from lofarpipe.support.data_map import DataMap
 
 
 def main(skymodel, ms_input, outroot, scale_factor=1.25):
@@ -81,7 +81,7 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
     max_x = pointing_x + fwhm_deg_ra / crdelt * scale_factor
     min_y = pointing_y - fwhm_deg_dec / crdelt * scale_factor
     max_y = pointing_y + fwhm_deg_dec / crdelt * scale_factor
-    field_ind = (x > x_min) & (y > y_min) & (x < x_max) and (y < y_max)
+    field_ind = (x > min_x) & (y > min_y) & (x < max_x) and (y < max_y)
 
     s_outlier.remove(field_ind)
     s_outlier.write(outroot+'.outlier')
