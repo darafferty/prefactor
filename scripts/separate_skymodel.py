@@ -58,8 +58,10 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
                         + ms_list[0] + " limit ::10000").getcol("el")
     mean_el_rad = np.mean(el_values)
     sec_el = 1.0 / np.sin(mean_el_rad)
-    fwhm_deg_ra = 1.1 * ((3.0e8 / mid_freq) / diam) * 180. / np.pi * sec_el
-    fwhm_deg_dec = 1.0 / np.sin(mean_el_rad)
+    fwhm_deg = 1.1 * ((3.0e8 / mid_freq) / diam) * 180. / np.pi * sec_el
+    fwhm_ra_deg = fwhm_deg / sec_el
+    fwhm_dec_deg = fwhm_deg
+    print('Using width in RA of {0} deg and in Dec of {1} deg'.format(fwhm_deg_ra*2.0, fwhm_deg_dec*2.0))
 
     # Get pointing info
     obs = pt.table(ms_list[0]+'::FIELD', ack=False)
@@ -77,10 +79,10 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
     pointing_x, pointing_y = lsmtool.operations_lib.radec2xy([pointing_ra], [pointing_dec],
                                                              refRA=refRA, refDec=refDec)
     crdelt = 0.066667  # deg/pix used by lsmtool.operations_lib.radec2xy()
-    min_x = pointing_x[0] - fwhm_deg_ra / crdelt * scale_factor
-    max_x = pointing_x[0] + fwhm_deg_ra / crdelt * scale_factor
-    min_y = pointing_y[0] - fwhm_deg_dec / crdelt * scale_factor
-    max_y = pointing_y[0] + fwhm_deg_dec / crdelt * scale_factor
+    min_x = pointing_x[0] - fwhm_ra_deg / crdelt * scale_factor
+    max_x = pointing_x[0] + fwhm_ra_deg / crdelt * scale_factor
+    min_y = pointing_y[0] - fwhm_dec_deg / crdelt * scale_factor
+    max_y = pointing_y[0] + fwhm_dec_deg / crdelt * scale_factor
     field_ind = (x > min_x) & (y > min_y) & (x < max_x) & (y < max_y)
 
     s_outlier.remove(field_ind)
