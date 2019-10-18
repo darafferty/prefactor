@@ -61,7 +61,7 @@ def main(skymodel, ms_input, outroot, scale_factor=1.25):
     fwhm_deg = 1.1 * ((3.0e8 / mid_freq) / diam) * 180. / np.pi * sec_el
     fwhm_ra_deg = fwhm_deg / sec_el
     fwhm_dec_deg = fwhm_deg
-    print('Using width in RA of {0} deg and in Dec of {1} deg'.format(fwhm_deg_ra*2.0, fwhm_deg_dec*2.0))
+    print('Using width in RA of {0} deg and in Dec of {1} deg'.format(fwhm_ra_deg*2.0, fwhm_dec_deg*2.0))
 
     # Get pointing info
     obs = pt.table(ms_list[0]+'::FIELD', ack=False)
