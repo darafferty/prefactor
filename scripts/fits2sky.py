@@ -47,7 +47,26 @@ def convert_radec_str(ra, dec):
     return sra, sdec
 
 
-def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='linear'):
+def input2bool(invar):
+    if invar is None:
+        return None
+    if isinstance(invar, bool):
+        return invar
+    elif isinstance(invar, str):
+        if invar.upper() == 'TRUE' or invar == '1':
+            return True
+        elif invar.upper() == 'FALSE' or invar == '0':
+            return False
+        else:
+            raise ValueError('input2bool: Cannot convert string "'+invar+'" to boolean!')
+    elif isinstance(invar, int) or isinstance(invar, float):
+        return bool(invar)
+    else:
+        raise TypeError('input2bool: Unsupported data type:'+str(type(invar)))
+
+
+def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='linear',
+         fit_poly=False, pb_corr=False):
     """
     Make a makesourcedb sky model for input MS from WSClean fits model images
 
@@ -70,9 +89,14 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
     interp : str, optional
         Interpolation method. Can be any supported by scipy.interpolate.interp1d:
             'linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-
+    fit_poly : bool, optional
+        If True, fit a 2nd-order polynomial to the fluxes for each source
+    pb_corr : bool, optional
+        If True, also look for PB-corrected model images and output sky models for
+        them too
     """
     min_flux_jy = float(min_flux_jy)
+    fit_poly = input2bool(fit_poly)
 
     # Get filenames of model images and masks
     if '[' in fits_models and ']' in fits_models:
@@ -85,6 +109,9 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
         fits_masks = [f.strip('\'\" ') for f in fits_masks]
     else:
         fits_masks = [fits_masks.strip('\'\" ')]
+
+    if pb_corr:
+        fits_models_pb = [f.split('.fits')[0]+'-pb.fits' for f in fits_models]
 
     # Read (first) MS file and get the frequency info
     if '[' in ms_file and ']' in ms_file:
@@ -105,6 +132,10 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
         hdr = fits.getheader(f, 0)
         freqs.append(hdr['CRVAL3']) # Hz
         model_images.append(fits.getdata(f, 0))
+    if pb_corr:
+        model_images_pb = []
+        for f in fits_models_pb:
+            model_images_pb.append(fits.getdata(f, 0))
     for f in fits_masks:
         mask_images.append(fits.getdata(f, 0))
 
@@ -113,6 +144,8 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
     freqs = np.array(freqs)[sorted_ind]
     fits_models = np.array(fits_models)[sorted_ind]
     model_images = np.array(model_images)[sorted_ind]
+    if pb_corr:
+        model_images_pb = np.array(model_images_pb)[sorted_ind]
     mask_images = np.array(mask_images)[sorted_ind]
 
     # Check if there is a model at the ms frequency. If so, just use that one
@@ -121,6 +154,8 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
         freqs = freqs[ind]
         fits_models = fits_models[ind]
         model_images = model_images[ind]
+        if pb_corr:
+            model_images_pb = model_images_pb[ind]
         mask_images = mask_images[ind]
 
     # Set the WCS reference
@@ -138,6 +173,8 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
     # Interpolate the fluxes to the frequency of the MS
     nsources = len(nonzero_ind[0])
     fluxes = []
+    fluxes_pb = []
+    spectral_indices = []
     names = []
     ras = []
     decs = []
@@ -149,6 +186,12 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
             if ma[tuple(index)] > 0:
                 flux_array.append(im[tuple(index)])
                 freq_array.append(freqs[ind])
+        if pb_corr:
+            flux_array_pb = []
+            for ind, (im, ma) in enumerate(zip(model_images_pb, mask_images)):
+                index = [nonzero_ind[j][i] for j in range(4)]
+                if ma[tuple(index)] > 0:
+                    flux_array_pb.append(im[tuple(index)])
 
         if len(flux_array) > 0:
             # Only create a source entry if MS frequency is within +/- 4 MHz of
@@ -158,17 +201,31 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
                 # If MS frequency lies outside range, just use nearest freq
                 if ms_freq < freq_array[0]:
                     flux = flux_array[0]
+                    if pb_corr:
+                        flux_pb = flux_array_pb[0]
                 elif ms_freq > freq_array[-1]:
                     flux = flux_array[-1]
+                    if pb_corr:
+                        flux_pb = flux_array_pb[-1]
                 else:
                     # Otherwise interpolate
                     flux = scipy.interpolate.interp1d(freq_array, flux_array, kind=interp)(ms_freq)
+                    if pb_corr:
+                        flux_pb = scipy.interpolate.interp1d(freq_array, flux_array_pb, kind=interp)(ms_freq)
                 if flux > min_flux_jy:
                     index.reverse() # change to WCS coords
                     ras.append(w.wcs_pix2world(np.array([index]), 0, ra_dec_order=True)[0][0])
                     decs.append(w.wcs_pix2world(np.array([index]), 0, ra_dec_order=True)[0][1])
                     names.append('cc{}'.format(i))
                     fluxes.append(flux)
+                    if pb_corr:
+                        fluxes_pb.append(flux_pb)
+
+            # Fit 2nd-order polynomial to fluxes if this MS is the lowest-frequency one
+            if fit_poly:
+                fit = np.polyfit(freq_array, flux_array_pb, 3).tolist()
+                fit.reverse()
+                spectral_indices.append(fit[1:])
 
     # Write sky model
     with open(skymodel, 'w') as outfile:
@@ -177,6 +234,23 @@ def main(fits_models, ms_file, skymodel, fits_masks, min_flux_jy=0.005, interp='
             ra_str, dec_str = convert_radec_str(ra, dec)
             outfile.write('{0}, POINT, {1}, {2}, {3}, 0.0, 0.0, 0.0, {4}\n'
                 .format(name, ra_str, dec_str, flux, ms_freq))
+
+    if pb_corr:
+        with open(skymodel+'_pb', 'w') as outfile:
+            outfile.write('FORMAT = Name, Type, Ra, Dec, I, Q, U, V, ReferenceFrequency\n')
+            for name, ra, dec, flux in zip(names, ras, decs, fluxes_pb):
+                ra_str, dec_str = convert_radec_str(ra, dec)
+                outfile.write('{0}, POINT, {1}, {2}, {3}, 0.0, 0.0, 0.0, {4}\n'
+                    .format(name, ra_str, dec_str, flux, ms_freq))
+
+    if fit_poly:
+        with open(skymodel+'_global', 'w') as outfile:
+            outfile.write("FORMAT = Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex='[]', LogarithmicSI, ReferenceFrequency\n")
+            for name, ra, dec, flux, spec in zip(names, ras, decs, fluxes, spectral_indices):
+                ra_str, dec_str = convert_radec_str(ra, dec)
+                outfile.write('{0}, POINT, {1}, {2}, {3}, 0.0, 0.0, 0.0, {4}, false, {5}\n'
+                    .format(name, ra_str, dec_str, flux, spec, ms_freq))
+
 
 
 if __name__ == '__main__':
