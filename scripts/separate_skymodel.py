@@ -41,10 +41,14 @@ def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0, pointing_ra=None,
     obs = pt.table(ms_in+'::FIELD', ack=False)
     if pointing_ra is None:
         pointing_ra = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][0]))
+    else:
+        pointing_ra = float(pointing_ra)
     if pointing_ra < 0.:
         pointing_ra = 360.0 + (pointing_ra)
     if pointing_dec is None:
         pointing_dec = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][1]))
+    else:
+        pointing_dec = float(pointing_dec)
     obs.close()
 
     # Filter (in image coordinates) on rectangle defined by FWHM
