@@ -9,7 +9,8 @@ import casacore.tables as pt
 import lsmtool
 
 
-def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
+def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0, pointing_ra=None,
+         pointing_dec=None):
     """
     Separate a makesourcedb sky model into outlier and field parts
 
@@ -25,6 +26,10 @@ def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
         Root for output sky models: outroot.outlier and outroot.field)
     scale_factor : float
         Scaling to use to determine field region: FWHM * scale_factor
+    pointing_ra : float
+        RA of pointing in degrees (if None, the phase center is used)
+    pointing_dec : float
+        Dec of pointing in degrees (if None, the phase center is used)
     """
     ms_in = ms_in.strip('[]')
     fwhm_ra_deg = float(fwhm_deg.split(" ")[0])
@@ -34,10 +39,12 @@ def main(skymodel, ms_in, fwhm_deg, outroot, scale_factor=1.0):
 
     # Get pointing info
     obs = pt.table(ms_in+'::FIELD', ack=False)
-    pointing_ra = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][0]))
+    if pointing_ra is None:
+        pointing_ra = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][0]))
     if pointing_ra < 0.:
         pointing_ra = 360.0 + (pointing_ra)
-    pointing_dec = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][1]))
+    if pointing_dec is None:
+        pointing_dec = np.degrees(float(obs.col('REFERENCE_DIR')[0][0][1]))
     obs.close()
 
     # Filter (in image coordinates) on rectangle defined by FWHM
